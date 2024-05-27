@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include <stdlib.h>
 int key1[8],key2[8];
 int n,i,j;
 void leftshift(int key[10],int num){
