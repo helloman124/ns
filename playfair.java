@@ -1,223 +1,106 @@
-import java.awt.Point;  
-import java.util.Scanner;  
-public class PlayfairCipher  
-{  
+import java.util.Scanner;
 
-private int length = 0;  
+public class playfair {
+private String key;
+private char[][] matrix;
 
-private String [][] table;  
+public playfair(String key) {
+this.key = key;
+this.matrix = generateMatrix(key);
+}
 
-public static void main(String args[])  
-{  
-PlayfairCipher pf = new PlayfairCipher();  
-}  
+// Function to generate the 5x5 matrix from the key
+private char[][] generateMatrix(String key) {
+String filteredKey = key.replaceAll("[^a-zA-Z]", "").toUpperCase();
+StringBuilder keyBuilder = new StringBuilder(filteredKey);
+for (char c = 'A'; c <= 'Z'; c++) {
+if (c == 'J') continue; // Skip 'J' since it's combined with 'I'
+if (keyBuilder.indexOf(String.valueOf(c)) == -1) {
+keyBuilder.append(c);
+}
+}
+char[][] matrix = new char[5][5];
+int index = 0;
+for (int i = 0; i < 5; i++) {
+for (int j = 0; j < 5; j++) {
+matrix[i][j] = keyBuilder.charAt(index++);
+}
+}
+return matrix;
+}
 
-private PlayfairCipher()  
-{  
+// Function to find the positions of two characters in the matrix
+private int[] findPosition(char ch) {
+int[] pos = new int[2];
+for (int i = 0; i < 5; i++) {
+for (int j = 0; j < 5; j++) {
+if (matrix[i][j] == ch) {
+pos[0] = i;
+pos[1] = j;
+return pos;
+}
+}
+}
+return pos;
+}
 
-System.out.print("Enter the key for playfair cipher: ");  
-Scanner sc = new Scanner(System.in);  
-String key = parseString(sc);  
-while(key.equals(""))  
-key = parseString(sc);  
-table = this.cipherTable(key);  
+// Function to encrypt a pair of characters
+private String encryptPair(char a, char b) {
+StringBuilder encryptedPair = new StringBuilder();
+int[] posA = findPosition(a);
+int[] posB = findPosition(b);
+if (posA[0] == posB[0]) {
+encryptedPair.append(matrix[posA[0]][(posA[1] + 1) % 5]);
+encryptedPair.append(matrix[posB[0]][(posB[1] + 1) % 5]);
+} else if (posA[1] == posB[1]) {
+encryptedPair.append(matrix[(posA[0] + 1) % 5][posA[1]]);
+encryptedPair.append(matrix[(posB[0] + 1) % 5][posB[1]]);
+} else {
+encryptedPair.append(matrix[posA[0]][posB[1]]);
+encryptedPair.append(matrix[posB[0]][posA[1]]);
+}
+return encryptedPair.toString();
+}
 
-System.out.print("Enter the plaintext to be encipher: ");  
+// Function to encrypt the plaintext
+public String encrypt(String plaintext) {
+StringBuilder encryptedText = new StringBuilder();
+plaintext = plaintext.replaceAll("[^a-zA-Z]", "").toUpperCase().replace("J", "I");
+for (int i = 0; i < plaintext.length(); i += 2) {
+char a = plaintext.charAt(i);
+char b = (i + 1 < plaintext.length()) ? plaintext.charAt(i + 1) : 'X';
+if (a == b) {
+b = 'X';
+i--;
+}
+encryptedText.append(encryptPair(a, b));
+}
+return encryptedText.toString();
+}
+public void displayMatrix() {
+System.out.println("Playfair Matrix:");
+for (int i = 0; i < 5; i++) {
+for (int j = 0; j < 5; j++) {
+System.out.print(matrix[i][j] + " ");
+}
+System.out.println();
+}
+}
 
-String input = parseString(sc);  
-while(input.equals(""))  
-input = parseString(sc);  
 
-String output = cipher(input);  
-String decodedOutput = decode(output);  
- 
-this.keyTable(table);  
-this.printResults(output,decodedOutput);  
-}  
+public static void main(String[] args) {
+Scanner scanner = new Scanner(System.in);
+System.out.print("Enter the key: ");
+String key = scanner.nextLine();
+playfair cipher = new playfair(key);
+System.out.print("Enter the plaintext: ");
+String plaintext = scanner.nextLine();
 
-private String parseString(Scanner sc)  
-{  
-String parse = sc.nextLine();  
+cipher.displayMatrix();
 
-parse = parse.toUpperCase();  
+String encryptedText = cipher.encrypt(plaintext);
+System.out.println("Encrypted text: " + encryptedText);
+scanner.close();
 
-parse = parse.replaceAll("[^A-Z]", "");  
-
-parse = parse.replace("J", "I");  
-return parse;  
-}  
-
-private String[][] cipherTable(String key)  
-{  
-
-String[][] playfairTable = new String[5][5];  
-String keyString = key + "ABCDEFGHIKLMNOPQRSTUVWXYZ";  
-
-for(int i = 0; i < 5; i++)  
-for(int j = 0; j < 5; j++)  
-playfairTable[i][j] = "";  
-for(int k = 0; k < keyString.length(); k++)  
-{  
-boolean repeat = false;  
-boolean used = false;  
-for(int i = 0; i < 5; i++)  
-{  
-for(int j = 0; j < 5; j++)  
-{  
-if(playfairTable[i][j].equals("" + keyString.charAt(k)))  
-{  
-repeat = true;  
-}  
-else if(playfairTable[i][j].equals("") && !repeat && !used)  
-{  
-playfairTable[i][j] = "" + keyString.charAt(k);  
-used = true;  
-}  
-}  
-}  
-}  
-return playfairTable;  
-}  
-
-private String cipher(String in)  
-{  
-length = (int) in.length() / 2 + in.length() % 2;  
-
- 
-for(int i = 0; i < (length - 1); i++)  
-{  
-if(in.charAt(2 * i) == in.charAt(2 * i + 1))  
-{  
-in = new StringBuffer(in).insert(2 * i + 1, 'X').toString();  
-length = (int) in.length() / 2 + in.length() % 2;  
-}  
-}  
-
-String[] digraph = new String[length];  
-
-for(int j = 0; j < length ; j++)  
-{  
-
-if(j == (length - 1) && in.length() / 2 == (length - 1))  
- 
-in = in + "X";  
-digraph[j] = in.charAt(2 * j) +""+ in.charAt(2 * j + 1);  
-}  
- 
-String out = "";  
-String[] encDigraphs = new String[length];  
-encDigraphs = encodeDigraph(digraph);  
-for(int k = 0; k < length; k++)  
-out = out + encDigraphs[k];  
-return out;  
-}  
-
-private String[] encodeDigraph(String di[])  
-{  
-String[] encipher = new String[length];  
-for(int i = 0; i < length; i++)  
-{  
-char a = di[i].charAt(0);  
-char b = di[i].charAt(1);  
-int r1 = (int) getPoint(a).getX();  
-int r2 = (int) getPoint(b).getX();  
-int c1 = (int) getPoint(a).getY();  
-int c2 = (int) getPoint(b).getY();  
-
-if(r1 == r2)  
-{  
-c1 = (c1 + 1) % 5;  
-c2 = (c2 + 1) % 5;  
-}  
- 
-else if(c1 == c2)  
-{  
-r1 = (r1 + 1) % 5;  
-r2 = (r2 + 1) % 5;  
-}  
-
-else  
-{  
-int temp = c1;  
-c1 = c2;  
-c2 = temp;  
-}  
-
-encipher[i] = table[r1][c1] + "" + table[r2][c2];  
-}  
-return encipher;  
-}  
-
-private String decode(String out)  
-{  
-String decoded = "";  
-for(int i = 0; i < out.length() / 2; i++)  
-{  
-char a = out.charAt(2*i);  
-char b = out.charAt(2*i+1);  
-int r1 = (int) getPoint(a).getX();  
-int r2 = (int) getPoint(b).getX();  
-int c1 = (int) getPoint(a).getY();  
-int c2 = (int) getPoint(b).getY();  
-if(r1 == r2)  
-{  
-c1 = (c1 + 4) % 5;  
-c2 = (c2 + 4) % 5;  
-}  
-else if(c1 == c2)  
-{  
-r1 = (r1 + 4) % 5;  
-r2 = (r2 + 4) % 5;  
-}  
-else  
-{  
-   
-int temp = c1;  
-c1 = c2;  
-c2 = temp;  
-}  
-decoded = decoded + table[r1][c1] + table[r2][c2];  
-}  
-
-return decoded;  
-}  
-
-private Point getPoint(char c)  
-{  
-Point pt = new Point(0,0);  
-for(int i = 0; i < 5; i++)  
-for(int j = 0; j < 5; j++)  
-if(c == table[i][j].charAt(0))  
-pt = new Point(i,j);  
-return pt;  
-}  
-
-private void keyTable(String[][] printTable)  
-{  
-System.out.println("Playfair Cipher Key Matrix: ");  
-System.out.println();  
-
-for(int i = 0; i < 5; i++)  
-{  
- 
-for(int j = 0; j < 5; j++)  
-{  
-   
-System.out.print(printTable[i][j]+" ");  
-}  
-System.out.println();  
-}  
-System.out.println();  
-}    
-
-private void printResults(String encipher, String dec)  
-{  
-System.out.print("Encrypted Message: ");  
-
-System.out.println(encipher);  
-System.out.println();  
-System.out.print("Decrypted Message: ");  
- 
-System.out.println(dec);  
-}  
+}
 }
