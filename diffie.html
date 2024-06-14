@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diffie-Hellman Key Exchange</title>
+</head>
+<body>
+    <h1>Diffie-Hellman Key Exchange</h1>
+    <div>
+        <label for="prime">Enter a prime number (p): </label>
+        <input type="text" id="prime">
+    </div>
+    <div>
+        <label for="base">Enter a base number (g): </label>
+        <input type="text" id="base">
+    </div>
+    <div>
+        <label for="privateKeyA">Enter Alice's private key (a): </label>
+        <input type="text" id="privateKeyA">
+    </div>
+    <div>
+        <label for="privateKeyB">Enter Bob's private key (b): </label>
+        <input type="text" id="privateKeyB">
+    </div>
+    <button onclick="generateKeys()">Generate Keys</button>
+
+    <div id="output"></div>
+
+    <script>
+        function generateKeys() {
+            const prime = parseInt(document.getElementById('prime').value);
+            const base = parseInt(document.getElementById('base').value);
+            const privateKeyA = parseInt(document.getElementById('privateKeyA').value);
+            const privateKeyB = parseInt(document.getElementById('privateKeyB').value);
+
+            // Calculate public keys
+            const publicKeyA = Math.pow(base, privateKeyA) % prime;
+            const publicKeyB = Math.pow(base, privateKeyB) % prime;
+
+            // Calculate shared secret
+            const sharedSecretA = Math.pow(publicKeyB, privateKeyA) % prime;
+            const sharedSecretB = Math.pow(publicKeyA, privateKeyB) % prime;
+
+            // Display results
+            document.getElementById('output').innerHTML = `
+                <p>Alice's public key: ${publicKeyA}</p>
+                <p>Bob's public key: ${publicKeyB}</p>
+                <p>Shared secret for Alice: ${sharedSecretA}</p>
+                <p>Shared secret for Bob: ${sharedSecretB}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
